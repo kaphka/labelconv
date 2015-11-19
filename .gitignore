@@ -1,0 +1,92 @@
+*~
+.idea
+/.DS_Store
+.DS_Store
+/classes
+/lib
+/target
+closure
+/core.js
+/coreadvanced.js
+/coresimple.js
+/out
+*out
+.lein*
+/pom.xml
+.repl*
+*.swp
+*.zip
+clojurescript_release_*
+closure-release-*
+.lein-repl-history
+.nrepl-port
+.nrepl-repl-history
+builds
+.cljs*
+node_modules
+nashorn_code_cache
+src/main/cljs/cljs/core.aot.js
+src/main/cljs/cljs/core.aot.js.map
+src/main/cljs/cljs/core.cljs.cache.aot.edn
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.pynative
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.hypothesis/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
