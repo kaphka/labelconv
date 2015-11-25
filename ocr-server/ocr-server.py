@@ -19,6 +19,10 @@ data_files = glob(data_src)
 file_ids = [splitext(split(p)[1])[0] for p in data_files] 
 
 
+def getSegments(idx):
+    segPath = join(splitext(data_files[idx])[0], '??????.bin.png')
+    return glob(segPath)
+
 @app.route("/")
 def hello():
     return redirect(url_for('static' , filename='index.html'))
@@ -54,14 +58,13 @@ def getSegementData(file_id=None):
 @app.route("/data/<file_id>/segment/<seg_id>/png")
 def getDataSegmentImage(file_id=None, seg_id=None):
     idx = int(file_ids.index(file_id))
-    if idx >= 0 and idx < len(segments):
-        segments = getSegments(idx)
-        return send_from_directory( *split(abspath(segments[idx]) ))
+    segments = getSegments(idx)
+    if (idx >= 0) and (( 0 <= seg_id ) < len(segments)):
+        return send_from_directory( *split(abspath(segments[int(seg_id)]) ))
     else:
+        print('wrong id')
         return abort(404)
 
-def getSegments(idx):
-    return glob(join(splitext(data_files[idx])[0], '??????.bin.png'))
 
 def binary_path(file_id):
     path = data_files[file_ids.index(file_id)]
