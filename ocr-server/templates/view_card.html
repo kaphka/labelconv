@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block body %}
+<h2>{{ id }} </h2>
+    <img width="30%" src="/data/{{ id }}/png"></img>
+    {{datasource}}
+    <form action="{{ url_for('correct', file_id=id) }}" method=post class=add-entry>
+      <dl>
+        {% for s in segments %}
+        <dt>
+        <img src="/data/{{id}}/segment/{{s}}/png"></img>
+        <dd><input type=text size=100 name=segment_{{id}}_{{s}} value="{{texts[s]}}">
+        {% endfor %}
+
+        <dd><input type=submit value=Submit>
+      </dl>
+    </form>
+
+
+  <ul class=entries>
+  {% for entry in entries %}
+    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
+  {% else %}
+    <li><em>Unbelievable.  No entries here so far</em>
+  {% endfor %}
+  </ul>
+{% endblock %}

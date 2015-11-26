@@ -4,20 +4,21 @@
             [ajax.core :refer [GET POST]]))
 
 (enable-console-print!)
+(def ENTER_KEY 13)
 
 (println "Editsto this text should show up in your developer console.")
 
 ;; define your app data so that it doesn't get over-written on reload
 
-(defonce app-state (atom {:text "Hello OCR-Text!"}))
+(defonce app-state (atom {:data [] :current [] }))
 (defonce files (atom {:text "Hi"}))
 
 (defn error-handler [{:keys [status status-text]}]
   (print (str "something bad happened: " status " " status-text)))
 
 (defn handler [response]
-  (swap! files conj response)
-  ;;(print "got files " (:items response))
+  (assoc! @app-state :data response)
+  (print "got files " (:items response))
   (map #(print (str %)) (:items response)))
 
 (GET "/data" {:response-format :json
@@ -46,5 +47,5 @@
 (defn on-js-reload []
   ;; optionally touch your app-state to force rerendering depending on
   ;; your application
-  ;; (swap! app-state update-in [:__figwheel_counter] inc)
+  ;;(swap! app-state update-in [:__figwheel_counter] inc)
 )
