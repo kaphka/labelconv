@@ -8,7 +8,7 @@ from flask import url_for, redirect, send_from_directory, abort, render_template
 from os.path import join, isfile, split, splitext, abspath, isdir
 from os import makedirs
 from glob import glob
-
+from random import randrange
 
 import ocrolib
 
@@ -43,6 +43,11 @@ def getText(files):
 def hello():
     return redirect(url_for('static' , filename='index.html'))
 
+@app.route("/correct_random")
+def routeToRandom():
+    rnd_id = randrange(len(file_ids))
+    return redirect(url_for("correct", file_id = file_ids[rnd_id]))
+
 @app.route("/data/<file_id>/correction" , methods= ['GET', 'POST'])
 def correct(file_id=None):
     if request.method == 'POST':
@@ -58,22 +63,28 @@ def correct(file_id=None):
             print(gt_file)
             with open(gt_file, 'w') as gt:
                 gt.write(text)
-    gt_files = glob(join(gt_path,file_id, '??????.gt.txt'))
-    if gt_files:
-        files = gt_files
-        texts = getText(gt_files)
-        datasource = 'gt'
-        print(texts)
-    else:
-        idx = int(file_ids.index(file_id))
-        files = getSegmentTextPaths(idx)
-        texts = getText(files)
-        datasource = 'ocr'
+    print('GET correct {}'.format(file_id))
+    segments = getFileNames(glob(join(data_path,file_id, '??????.bin.png')))
+    text = dict()
+    for s in segments:
+        gt_file = join(gt_path,file_id,s + '.gt.txt')
+        ocr_file = join(data_path,file_id,s + '.txt')
+        print(gt_file, isfile(gt_file))
+        print(ocr_file, isfile(ocr_file))
+        if isfile(gt_file):
+            text[s] = open(gt_file).read()
+        elif isfile(ocr_file):
+            text[s] = open(ocr_file).read()
+        else:
+            text[s] = ''
+
+
     return render_template('view_card.html',
                            id=file_id, 
-                           segments=getFileNames(files),
-                           texts=texts,
-                           datasource=datasource)
+                           segments=segments,
+                           texts=text,
+                           datasource=None,
+                           is_gt=False)
 
 
 @app.route("/data/")

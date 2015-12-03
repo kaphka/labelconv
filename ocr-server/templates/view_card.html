@@ -2,17 +2,23 @@
 {% block body %}
 <h2>{{ id }} </h2>
     <img width="30%" src="/data/{{ id }}/png"></img>
-    {{datasource}}
-    <form action="{{ url_for('correct', file_id=id) }}" method=post class=add-entry>
-      <dl>
+    {% if is_gt %}
+    <span class="label label-success">{{datasource}}</span>
+    
+    {% endif %}
+    <form action="{{ url_for('correct', file_id=id) }}" method=post class="add-entry input-group-lg">
         {% for s in segments %}
-        <dt>
+        <div class="row">
         <img src="/data/{{id}}/segment/{{s}}/png"></img>
-        <dd><input type=text size=100 name=segment_{{id}}_{{s}} value="{{texts[s]}}">
+        <div class="input-group input-group-lg">
+            <!--<span class="input-group-addon" id="sizing-addon1">{{s}}</span>-->
+        <input type=text size=100 name="segment_{{id}}_{{s}}" value="{{texts[s]}}" aria-describedby="sizing-addon1" class="form-control" autocomplete="off">
+        </div>
+        </div>
+        <p></p>
         {% endfor %}
 
-        <dd><input type=submit value=Submit>
-      </dl>
+        <input type=submit value=Submit>
     </form>
 
 
