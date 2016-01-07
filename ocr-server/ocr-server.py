@@ -64,7 +64,7 @@ def correct(file_id=None):
             with open(gt_file, 'w') as gt:
                 gt.write(text)
     print('GET correct {}'.format(file_id))
-    segments = getFileNames(glob(join(data_path,file_id, '??????.bin.png')))
+    segments = sorted(getFileNames(glob(join(data_path,file_id, '??????.bin.png'))))
     text = dict()
     for s in segments:
         gt_file = join(gt_path,file_id,s + '.gt.txt')
