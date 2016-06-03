@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block body %}
+<h1>{{ page['path'] }} </h1>
+{{corr}}
+<a href="/train/{{page_context['next']}}">next</a>
+<p>
+<form  method="post">
+     <div class="form-group">
+    <!--<input type="text" class="form-control" id="line_name" placeholder="index text"
+        value="{{ page['lines'][0]['name'] }}"> -->
+    <input type="text" name="text" class="form-control" id="line_text" placeholder="index text"
+    value="{{ page['index_text'] }}">
+    <!--<input type="number" class="form-control" id="line_cutoff" placeholder="index text"
+        value="{{ page['index_text'] }}">-->
+     </div>
+</p>
+{% for line in page['lines'] %}
+    <div class="row radio">
+    <div class="bg-info " id='{{line['name']}}' >
+        <p class="col-xs-2" >
+        <label>
+            <input class="input-lg" type="radio" name="index_name" id="optName" value="{{line['name']}}" >
+        {{line['name']}}
+        </label>
+        </p>
+        <p class="col-xs-10">
+        <img  class="img-responsive" src="/image/{{page['path']}}/{{line['name']}}"></img>
+        </p>
+    </div>
+    </div>
+{% endfor %}
+
+    <button type="submit" class="btn btn-default">Submit</button>
+</form>
+<img src="/image/{{page['path']}}"></img>
+{% endblock %}
