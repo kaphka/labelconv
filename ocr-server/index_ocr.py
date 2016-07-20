@@ -20,11 +20,14 @@ import ujson
 import tinydb
 from tinydb import Query
 
-app = Flask(__name__)
+import pandas as pd
 
-def get_sample(catalog, N=5):
+app = Flask(__name__)
+DEFAULT_SEED = 'reproducibility'
+SAMPLES = 400
+
+def get_sample(catalog, N=SAMPLES, seed=DEFAULT_SEED):
     rnd = random.Random()
-    seed = catalog['name']
     rnd.seed(seed)
     print('sample seed: ', seed)
     lines = []
@@ -34,13 +37,16 @@ def get_sample(catalog, N=5):
     lines = rnd.sample(sorted(lines), N)
     return lines
 
+
 @app.route("/")
 def route():
     return jsonify(catalog)
 
+
 @app.route("/index.html")
 def index():
     return render_template('catalog.html', pages=ordered_pages)
+
 
 @app.route('/sample', methods=['POST'])
 def post_sample_page():
@@ -54,6 +60,7 @@ def post_sample_page():
         print('update', entry)
         tlines.update(entry, Line.id == entry['id'])
     return ('', 200)
+
 
 @app.route('/sample/<name>', methods=['GET'])
 def get_sample_page(name=None):
@@ -69,13 +76,15 @@ def getPageContext(name):
     print(page_context)
     return page_context
 
+
 @app.route("/train/<batch>/<id>", methods=['GET'])
 def get_page_fix_page(batch=None, id=None):
     name = op.join(batch, id)
     return render_template('fix_page.html',
-            page=page_dict[name],
-            corr=db.search(Page.name == name),
-            page_context=getPageContext(name))
+                           page=page_dict[name],
+                           corr=db.search(Page.name == name),
+                           page_context=getPageContext(name))
+
 
 @app.route("/train/<batch>/<id>", methods=['POST'])
 def post_correction(batch=None, id=None):
@@ -91,7 +100,8 @@ def post_correction(batch=None, id=None):
     else:
         print('update', str(entry))
         db.update(entry, Page.name == name)
-    return render_template('fix_page.html', page=page_dict[name], corr=db.search(Page.name == name), page_context=getPageContext(name))
+    return render_template('fix_page.html', page=page_dict[name], corr=db.search(Page.name == name),
+                           page_context=getPageContext(name))
 
 @app.route("/cat/<batch>/<id>/<line_name>")
 def get_page(batch=None, id=None, line_name=None):
@@ -102,36 +112,47 @@ def get_page(batch=None, id=None, line_name=None):
         return jsonify(line[0])
     return jsonify(page_dict[name])
 
+
 @app.route("/image/<batch>/<id>/<line>")
 @app.route("/image/<batch>/<id>")
 def get_page_image(batch=None, id=None, line=None):
     cat_name = re.match('([A-S]+)', batch).group(0)
     if line:
-        img_path, image = op.join(catalogs[cat_name]['path'], batch, id), line + '.bin.png'
+        img_path, image = op.join(catalogs[cat_name]['path'], batch, id), line + '.png'
     else:
         img_path, image = op.join(catalogs[cat_name]['path'], batch), id + '.png'
     print(img_path)
     return send_from_directory(img_path, image)
 
-db = tinydb.TinyDB('index_manual.json')
-tlines = db.table('lines')
+
+
 # import catconv.operations as co
 # import catconv.stabi as sb
 
 parser = argparse.ArgumentParser()
 parser.add_argument("json_path")
 parser.add_argument("indices_path")
+parser.add_argument("json_db")
 args = parser.parse_args()
 
+db = tinydb.TinyDB(args.json_db)
+tlines = db.table('lines')
+db_samples = pd.DataFrame()
 
-
-catalogs = {}
+catalogs  = {}
+page_dict = {}
 for json_path in glob(args.json_path):
     print("loading catalog file ", json_path)
     with open(json_path, 'rb') as jfile:
         catalog = ujson.load(jfile)
     print('with name', catalog['name'])
+    page_dict.update({page['path']: page for page in catalog['pages']})
     catalogs[catalog['name']] = catalog
+    db_samples = db_samples.append(get_sample(catalog))
+
+db_samples.to_csv(op.join(op.dirname(args.json_db), 'sample_{}.csv'.format(DEFAULT_SEED)), )
+
+print(catalogs.keys())
 
 text = {}
 for indices in glob(args.indices_path):
@@ -140,9 +161,7 @@ for indices in glob(args.indices_path):
         indices_map = ujson.load(jfile)
         text.update(indices_map)
 
-page_dict = { page['path']: page for page in catalog['pages'] }
 ordered_pages = sorted([page['path'] for page in page_dict.values()])
-sample = get_sample(catalog)
 
 Page = Query()
 Line = Query()
@@ -151,12 +170,11 @@ for path, page in page_dict.items():
     batch, id = op.split(path)
     short_name = batch + id[4:]
     page['index_text'] = text[short_name]
-    #if not db.contains(Page.name == page['path']):
-        #entry = { 'text': page['index_text']}
-        #if len(page['lines']) > 0:
-            #entry['index_name'] = page['lines'][0]['name']
-        #db.insert(entry)
-
+    # if not db.contains(Page.name == page['path']):
+    # entry = { 'text': page['index_text']}
+    # if len(page['lines']) > 0:
+    # entry['index_name'] = page['lines'][0]['name']
+    # db.insert(entry)
 
 if __name__ == "__main__":
     app.run(debug=True)
