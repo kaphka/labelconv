@@ -34,6 +34,7 @@ def get_sample(catalog, N=SAMPLES, seed=DEFAULT_SEED):
     for page in catalog['pages']:
         for line in page['lines']:
             lines.append(op.join(page['path'], line['name']))
+    print(set([type(line) for line in lines]))
     lines = rnd.sample(sorted(lines), N)
     return lines
 
@@ -53,21 +54,21 @@ def post_sample_page():
     entry = request.get_json()
     if len(entry['gt']) == 0:
         print('no text')
-    elif not tlines.contains(Line.id == entry['id']):
+    elif not text_lines.contains(Line.id == entry['id']):
         print('insert', entry)
-        tlines.insert(entry)
+        text_lines.insert(entry)
     else:
         print('update', entry)
-        tlines.update(entry, Line.id == entry['id'])
+        text_lines.update(entry, Line.id == entry['id'])
     return ('', 200)
 
 
 @app.route('/sample/<name>', methods=['GET'])
 def get_sample_page(name=None):
     print('get samples')
-    text = {line['id']: line['gt'] for line in tlines.all()}
-    samples = get_sample(catalogs[name])
-    return render_template('sample.html', sample=samples, text=text)
+    text = {line['id']: line['gt'] for line in text_lines.all()}
+    samples = get_sample(catalogs[name], seed=seed)
+    return render_template('sample.html', sample=samples, text=text, name=name)
 
 
 def getPageContext(name):
@@ -124,20 +125,22 @@ def get_page_image(batch=None, id=None, line=None):
     print(img_path)
     return send_from_directory(img_path, image)
 
-
-
-# import catconv.operations as co
-# import catconv.stabi as sb
-
 parser = argparse.ArgumentParser()
-parser.add_argument("json_path")
-parser.add_argument("indices_path")
-parser.add_argument("json_db")
+parser.add_argument("json_path", help='json files that contain the lines')
+# parser.add_argument("indices_path")
+parser.add_argument("json_db", help='output path')
+parser.add_argument("--seed", help='seed for random line selection')
 args = parser.parse_args()
 
 db = tinydb.TinyDB(args.json_db)
-tlines = db.table('lines')
+text_lines = db.table('lines')
 db_samples = pd.DataFrame()
+if args.seed:
+    seed = args.seed
+else:
+    seed = DEFAULT_SEED
+
+print("Seed: {}".format(seed))
 
 catalogs  = {}
 page_dict = {}
@@ -148,18 +151,12 @@ for json_path in glob(args.json_path):
     print('with name', catalog['name'])
     page_dict.update({page['path']: page for page in catalog['pages']})
     catalogs[catalog['name']] = catalog
-    db_samples = db_samples.append(get_sample(catalog))
+    print("Getting sample with '{}'".format(seed))
+    db_samples = db_samples.append(get_sample(catalog, seed=seed))
 
-db_samples.to_csv(op.join(op.dirname(args.json_db), 'sample_{}.csv'.format(DEFAULT_SEED)), )
+db_samples.to_csv(op.join(op.dirname(args.json_db), 'sample_{}.csv'.format(seed)), )
 
 print(catalogs.keys())
-
-text = {}
-for indices in glob(args.indices_path):
-    print('Loading indicies from ', indices)
-    with open(indices, 'rb') as jfile:
-        indices_map = ujson.load(jfile)
-        text.update(indices_map)
 
 ordered_pages = sorted([page['path'] for page in page_dict.values()])
 
@@ -169,12 +166,7 @@ Line = Query()
 for path, page in page_dict.items():
     batch, id = op.split(path)
     short_name = batch + id[4:]
-    page['index_text'] = text[short_name]
-    # if not db.contains(Page.name == page['path']):
-    # entry = { 'text': page['index_text']}
-    # if len(page['lines']) > 0:
-    # entry['index_name'] = page['lines'][0]['name']
-    # db.insert(entry)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

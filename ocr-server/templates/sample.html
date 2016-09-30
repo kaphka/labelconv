@@ -1,24 +1,29 @@
 {% extends "layout.html" %}
 {% block body %}
-<h1>Sample</h1><p>
-  ~!"#$%&'()*+,-./0123456789:;<=>?@
-  ABCDEFGHIJKLMNOPQRSTUVWXYZ
-  [\]^_`
-  abcdefghijklmnopqrstuvwxyz
-  {|}¡¢£§©«®°¶»¿
-  ÀÂÄÆÇÈÉÊËÎÏÔÖÙÛÜßàâäæçèéêëîïôö÷
-  ùûüÿŒœŸ
-  †‡•‣‹›€∙▪▫◦
-  Á á Č č Ď ď É é Ě ě Í í Ň ň Ó ó Ř ř Š š Ť ť Ú ú Ů ů Ý ý Ž
-</p>
+<h1>Sample lines from {{name}}</h1>
+<div class="container-fluid" style='position:fixed;left:0;top:0; background: white'>
+    <div class="row-fluid">
+        <div class="offset1 span8 pull-right">
+            <p>
+<pre>
+<strong>Special characters: </strong> ¡¢£§©«®°¶»¿†‡•‣‹›€∙▪▫◦ ÀÂÄÆÇÈÉÊËÎÏÔÖÙÛÜßàâäæçèéêëîïôö÷ùûüÿŒœŸ ÁáČčĎďÉéĚěÍíŇňÓóŘřŠšŤťÚúŮůÝýŽ
+</pre>
+            </p>
+        </div>
+    </div>
+</div>
+
+
 {% for line in sample %}
 <p>
-    <div class='sample'>
-      <div class='row'>
-        <img  class="img-responsive" src="/image/{{line}}"></img>
-        <input class="gt-text" type='text' id="{{line}}" onblur="send_gt_text(this)" value="{{text[line]}}"/>
-      </div>
+<div class='sample'>
+    <div class='row'>
+        <img class="img-responsive" src="/image/{{line}}"></img>
+        <input class="gt-text input-lg" style="width: 100%" type='text' id="{{line}}" onblur="send_gt_text(this)"
+               value="{{text[line]}}"/>
+        <p></p>
     </div>
+</div>
 </p>
 {% endfor %}
 {% endblock %}
